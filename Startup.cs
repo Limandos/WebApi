@@ -28,17 +28,7 @@ namespace WebApi
             {
                 options.FormatterMappings.SetMediaTypeMappingForFormat("xml", "application/xml");
             });
-            /*services.AddSwaggerGen(options =>
-            {
-                options.AddSecurityDefinition("Auth", new OpenApiSecurityScheme()
-                {
-                    Description = "Bearer Authentication",
-                    In = ParameterLocation.Header,
-                    Name = "Authorization",
-                    Type = SecuritySchemeType.ApiKey
-                });
-               options.OperationFilter<SecurityRequirementsOperationFilter>();
-            });*/
+            services.AddSwaggerGen();
             /*services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters

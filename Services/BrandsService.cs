@@ -84,6 +84,7 @@ namespace WebApi.Services
             Brand result = dataBase.Brands.FirstOrDefault(b => b.Id == id);
             result.HeadQuarters = dto.HeadQuarters;
             result.Name = dto.Name;
+            dataBase.SaveChanges();
             return dto;
         }
 
