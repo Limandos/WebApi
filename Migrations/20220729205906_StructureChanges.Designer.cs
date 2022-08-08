@@ -3,15 +3,17 @@ using System;
 using Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace WebApi.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20220729205906_StructureChanges")]
+    partial class StructureChanges
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,8 +39,6 @@ namespace WebApi.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.HasIndex("Specialization");
-
                     b.ToTable("Brands");
                 });
 
@@ -56,8 +56,6 @@ namespace WebApi.Migrations
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CreationDate");
 
                     b.HasIndex("UserId");
 
@@ -90,12 +88,10 @@ namespace WebApi.Migrations
 
                     b.HasIndex("BrandId");
 
-                    b.HasIndex("Name")
-                        .IsUnique();
-
                     b.HasIndex("OrderId");
 
-                    b.HasIndex("ProductSerial");
+                    b.HasIndex("ProductSerial")
+                        .IsUnique();
 
                     b.ToTable("Products");
                 });
@@ -127,8 +123,6 @@ namespace WebApi.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.HasIndex("UserName", "Role");
-
                     b.ToTable("Users");
                 });
 
@@ -148,7 +142,7 @@ namespace WebApi.Migrations
                         .HasForeignKey("BrandId");
 
                     b.HasOne("Entities.Order", null)
-                        .WithMany("ProductsList")
+                        .WithMany("OrderList")
                         .HasForeignKey("OrderId");
 
                     b.Navigation("Brand");
@@ -161,7 +155,7 @@ namespace WebApi.Migrations
 
             modelBuilder.Entity("Entities.Order", b =>
                 {
-                    b.Navigation("ProductsList");
+                    b.Navigation("OrderList");
                 });
 
             modelBuilder.Entity("Entities.User", b =>

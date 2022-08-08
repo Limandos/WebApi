@@ -1,9 +1,7 @@
 ﻿namespace WebApi.DTO
 {
-    public class ProductDto
+    public class ProductDto : BaseDto
     {
-        public int Id { get; set; }
-
         public string Name { get; set; }
 
         public long ProductSerial { get; set; }

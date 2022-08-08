@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using WebApi.DTO;
 
 namespace WebApi.Services
@@ -15,9 +16,9 @@ namespace WebApi.Services
             this.dataBase = dataBase;
         }
 
-        public IEnumerable<ProductDto> GetAll()
+        public async Task<List<ProductDto>> GetAll()
         {
-            List<ProductDto> result = new List<ProductDto>();
+            List<ProductDto> result = new();
             foreach (Product product in dataBase.Products.Include(p => p.Brand))
             {
                 result.Add(new ProductDto()
@@ -29,37 +30,42 @@ namespace WebApi.Services
                     BrandName = product.Brand.Name
                 });
             }
-            return result;
+            return await Task.FromResult(result);
         }
 
-        public ProductDto Get(int id)
+        public async Task<ProductDto> Get(int id)
         {
             Product product = dataBase.Products.Include(p => p.Brand).FirstOrDefault(p => p.Id == id);
-            return new ProductDto()
+            if (product is null)
+                return null;
+
+            return await Task.FromResult(new ProductDto()
             {
                 Id = product.Id,
                 Name = product.Name,
                 BrandName = product.Brand.Name,
                 Price = product.Price,
                 ProductSerial = product.ProductSerial
-            };
+            });
         }
 
-        public ProductDto Post(ProductDto product)
+        public async Task<ProductDto> Post(ProductDto productDto)
         {
-            Product result = new Product()
+            Product product = new()
             {
-                ProductSerial = product.ProductSerial,
-                Name = product.Name,
-                Price = product.Price,
-                Brand = dataBase.Brands.FirstOrDefault(b => b.Name == product.BrandName)
+                ProductSerial = productDto.ProductSerial,
+                Name = productDto.Name,
+                Price = productDto.Price,
+                Brand = dataBase.Brands.FirstOrDefault(b => b.Name == productDto.BrandName)
             };
-            dataBase.Products.Add(result);
+            dataBase.Products.Add(product);
             dataBase.SaveChanges();
-            return product;
+
+            productDto.Id = dataBase.Products.First(p => p.ProductSerial == product.ProductSerial).Id;
+            return await Task.FromResult(productDto);
         }
 
-        public ProductDto Put(int id, ProductDto product)
+        public async Task<ProductDto> Put(int id, ProductDto product)
         {
             Product result = dataBase.Products.FirstOrDefault(p => p.Id == id);
             Brand brand = dataBase.Brands.FirstOrDefault(b => product.BrandName == b.Name);
@@ -68,22 +74,22 @@ namespace WebApi.Services
             result.ProductSerial = product.ProductSerial;
             result.Brand = brand;
             dataBase.SaveChanges();
-            return product;
+            return await Task.FromResult(product);
         }
 
-        public ProductDto Delete(int id)
+        public async Task<ProductDto> Delete(int id)
         {
-            Product result = dataBase.Products.FirstOrDefault(p => p.Id == id);
+            Product result = dataBase.Products.Include(p => p.Brand).FirstOrDefault(p => p.Id == id);
             dataBase.Products.Remove(result);
             dataBase.SaveChanges();
-            return new ProductDto
+            return await Task.FromResult(new ProductDto
             {
                 Id = result.Id,
                 BrandName = result.Brand.Name,
                 Name = result.Name,
                 Price = result.Price,
                 ProductSerial = result.ProductSerial
-            };
+            });
         }
     }
 }

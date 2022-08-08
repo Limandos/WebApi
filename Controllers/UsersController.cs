@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using WebApi.DTO;
 using WebApi.Services;
 
@@ -16,22 +17,41 @@ namespace WebApi.Controllers
             this.usersService = usersService;
         }
 
-        [HttpGet]
-        public ActionResult<IEnumerable<UserDto>> Get()
+        [HttpGet("all")]
+        public async Task<List<UserInfoDto>> Get()
         {
-            return new ActionResult<IEnumerable<UserDto>>(usersService.GetAll());
+            return await usersService.GetAll();
         }
 
         [HttpGet("{id}")]
-        public ActionResult<UserDto> Get(int id)
+        public async Task<UserInfoDto> Get(int id)
         {
-            return new ActionResult<UserDto>(usersService.Get(id));
+            return await usersService.GetById(id);
         }
 
-        [HttpPost]
-        public ActionResult<UserDto> Post(UserDto user)
+        [HttpPost("register")]
+        public async Task<JsonResult> Register(UserRegisterDto user)
         {
-            return new ActionResult<UserDto>(usersService.Post(user));
+            string token = await usersService.Register(user);
+            return await Task.FromResult(new JsonResult(new
+            {
+                email = user.Email,
+                accessToken = token
+            }));
+        }
+
+        [HttpPost("login")]
+        public async Task<ActionResult> Login([FromBody] UserLoginDto user)
+        {
+            string token = await usersService.Login(user);
+            if (token is null)
+                return await Task.FromResult(Unauthorized());
+
+            return await Task.FromResult(new JsonResult(new
+            {
+                email = user.Email,
+                accessToken = token
+            }));
         }
     }
 }

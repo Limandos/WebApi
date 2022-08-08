@@ -2,13 +2,11 @@
 
 namespace WebApi.DTO
 {
-    public class BrandDto
+    public class BrandDto : BaseDto
     {
-        public int Id { get; set; }
-
         public string Name { get; set; }
 
-        public string HeadQuarters { get; set; }
+        public string Specialization { get; set; }
 
         public List<ProductDto> Products { get; set; }
     }

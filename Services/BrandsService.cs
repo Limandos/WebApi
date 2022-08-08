@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using WebApi.DTO;
 
 namespace WebApi.Services
@@ -15,12 +16,12 @@ namespace WebApi.Services
             this.dataBase = dataBase;
         }
 
-        public IEnumerable<BrandDto> GetAll()
+        public async Task<List<BrandDto>> GetAll()
         {
-            List<BrandDto> result = new List<BrandDto>();
+            List<BrandDto> brands = new();
             foreach (Brand brand in dataBase.Brands.Include(b => b.Products))
             {
-                List<ProductDto> products = new List<ProductDto>();
+                List<ProductDto> products = new();
                 foreach (Product product in brand.Products)
                 {
                     products.Add(new ProductDto()
@@ -32,21 +33,21 @@ namespace WebApi.Services
                         ProductSerial = product.ProductSerial
                     });
                 }
-                result.Add(new BrandDto()
+                brands.Add(new BrandDto()
                 {
                     Id = brand.Id,
                     Name = brand.Name,
-                    HeadQuarters = brand.HeadQuarters,
+                    Specialization = brand.Specialization,
                     Products = products
                 });
             }
-            return result;
+            return await Task.FromResult(brands);
         }
 
-        public BrandDto Get(int id)
+        public async Task<BrandDto> Get(int id)
         {
             Brand brand = dataBase.Brands.Include(b => b.Products).FirstOrDefault(b => b.Id == id);
-            List<ProductDto> products = new List<ProductDto>();
+            List<ProductDto> products = new();
             foreach (Product product in brand.Products)
             {
                 products.Add(new ProductDto()
@@ -58,47 +59,49 @@ namespace WebApi.Services
                     ProductSerial = product.ProductSerial
                 });
             }
-            return new BrandDto()
+            return await Task.FromResult(new BrandDto()
             {
                 Id = brand.Id,
                 Name = brand.Name,
-                HeadQuarters = brand.HeadQuarters,
+                Specialization = brand.Specialization,
                 Products = products
-            };
+            });
         }
 
-        public BrandDto Post(BrandDto brand)
+        public async Task<BrandDto> Post(BrandDto brandDto)
         {
-            Brand result = new Brand()
+            Brand brand = new()
             {
-                Name = brand.Name,
-                HeadQuarters = brand.HeadQuarters
+                Name = brandDto.Name,
+                Specialization = brandDto.Specialization
             };
-            dataBase.Brands.Add(result);
+            dataBase.Brands.Add(brand);
             dataBase.SaveChanges();
-            return brand;
+
+            brandDto.Id = dataBase.Brands.First(b => b.Name == brand.Name).Id;
+            return await Task.FromResult(brandDto);
         }
 
-        public BrandDto Put(int id, BrandDto dto)
+        public async Task<BrandDto> Put(int id, BrandDto dto)
         {
             Brand result = dataBase.Brands.FirstOrDefault(b => b.Id == id);
-            result.HeadQuarters = dto.HeadQuarters;
+            result.Specialization = dto.Specialization;
             result.Name = dto.Name;
             dataBase.SaveChanges();
-            return dto;
+            return await Task.FromResult(dto);
         }
 
-        public BrandDto Delete(int id)
+        public async Task<BrandDto> Delete(int id)
         {
             Brand result = dataBase.Brands.FirstOrDefault(p => p.Id == id);
             dataBase.Brands.Remove(result);
             dataBase.SaveChanges();
-            return new BrandDto
+            return await Task.FromResult(new BrandDto
             {
                 Id = result.Id,
                 Name = result.Name,
-                HeadQuarters = result.HeadQuarters
-            };
+                Specialization = result.Specialization
+            });
         }
     }
 }

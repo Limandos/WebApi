@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using WebApi.Services;
 using WebApi.DTO;
+using Microsoft.AspNetCore.Authorization;
+using System.Threading.Tasks;
 
 namespace WebApi.Controllers
 {
@@ -16,31 +18,37 @@ namespace WebApi.Controllers
             this.productsService = productsService;
         }
 
-        [HttpGet]
-        public ActionResult<IEnumerable<ProductDto>> Get() => new ActionResult<IEnumerable<ProductDto>>(productsService.GetAll());
+        [HttpGet("all")]
+        public async Task<List<ProductDto>> Get()
+        {
+            return await productsService.GetAll();
+        }
 
         [HttpGet("{id}")]
-        public ActionResult<ProductDto> Get(int id)
+        public async Task<ProductDto> Get(int id)
         {
-            return new ActionResult<ProductDto>(productsService.Get(id));
+            return await productsService.Get(id);
         }
 
-        [HttpPost]
-        public ActionResult<ProductDto> Post(ProductDto product)
+        [HttpPost("add")]
+        [Authorize(Roles = "admin")]
+        public async Task<ProductDto> Post(ProductDto product)
         {
-            return new ActionResult<ProductDto>(productsService.Post(product));
+            return await productsService.Post(product);
         }
 
-        [HttpPut]
-        public ActionResult<ProductDto> Put(int id, [FromBody] ProductDto product)
+        [HttpPut("update/{id}")]
+        [Authorize(Roles = "admin")]
+        public async Task<ProductDto> Put(int id, [FromBody] ProductDto product)
         {
-            return new ActionResult<ProductDto>(productsService.Put(id, product));
+            return await productsService.Put(id, product);
         }
 
-        [HttpDelete("{id}")]
-        public ActionResult<ProductDto> Delete(int id)
+        [HttpDelete("delete/{id}")]
+        [Authorize(Roles = "admin")]
+        public async Task<ProductDto> Delete(int id)
         {
-            return new ActionResult<ProductDto>(productsService.Delete(id));
+            return await productsService.Delete(id);
         }
     }
 }

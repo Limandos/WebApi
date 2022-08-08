@@ -3,15 +3,17 @@ using System;
 using Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace WebApi.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20220730115238_IndexesChanged")]
+    partial class IndexesChanged
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -52,14 +54,20 @@ namespace WebApi.Migrations
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<long?>("UserId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("UserEmail")
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserRole")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CreationDate");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserEmail", "UserName", "UserRole");
 
                     b.ToTable("Orders");
                 });
@@ -95,20 +103,25 @@ namespace WebApi.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.HasIndex("ProductSerial");
+                    b.HasIndex("ProductSerial")
+                        .IsUnique();
 
                     b.ToTable("Products");
                 });
 
             modelBuilder.Entity("Entities.User", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-
                     b.Property<string>("Email")
                         .HasColumnType("text");
+
+                    b.Property<string>("UserName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Role")
+                        .HasColumnType("text");
+
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
 
                     b.Property<byte[]>("PasswordHash")
                         .HasColumnType("bytea");
@@ -116,18 +129,7 @@ namespace WebApi.Migrations
                     b.Property<byte[]>("PasswordSalt")
                         .HasColumnType("bytea");
 
-                    b.Property<string>("Role")
-                        .HasColumnType("text");
-
-                    b.Property<string>("UserName")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Email")
-                        .IsUnique();
-
-                    b.HasIndex("UserName", "Role");
+                    b.HasKey("Email", "UserName", "Role");
 
                     b.ToTable("Users");
                 });
@@ -136,7 +138,7 @@ namespace WebApi.Migrations
                 {
                     b.HasOne("Entities.User", "User")
                         .WithMany("Orders")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserEmail", "UserName", "UserRole");
 
                     b.Navigation("User");
                 });
@@ -148,7 +150,7 @@ namespace WebApi.Migrations
                         .HasForeignKey("BrandId");
 
                     b.HasOne("Entities.Order", null)
-                        .WithMany("ProductsList")
+                        .WithMany("OrderList")
                         .HasForeignKey("OrderId");
 
                     b.Navigation("Brand");
@@ -161,7 +163,7 @@ namespace WebApi.Migrations
 
             modelBuilder.Entity("Entities.Order", b =>
                 {
-                    b.Navigation("ProductsList");
+                    b.Navigation("OrderList");
                 });
 
             modelBuilder.Entity("Entities.User", b =>

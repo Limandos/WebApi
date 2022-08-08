@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using WebApi.DTO;
 using WebApi.Services;
 
@@ -16,34 +18,37 @@ namespace WebApi.Controllers
             this.brandsService = brandsService;
         }
 
-        [HttpGet]
-        public ActionResult<IEnumerable<BrandDto>> Get()
+        [HttpGet("all")]
+        public async Task<List<BrandDto>> Get()
         {
-            return new ActionResult<IEnumerable<BrandDto>>(brandsService.GetAll());
+            return await brandsService.GetAll();
         }
 
         [HttpGet("{id}")]
-        public ActionResult<BrandDto> Get(int id)
+        public async Task<BrandDto> Get(int id)
         {
-            return new ActionResult<BrandDto>(brandsService.Get(id));
+            return await brandsService.Get(id);
         }
 
-        [HttpPost]
-        public ActionResult<BrandDto> Post(BrandDto brand)
+        [HttpPost("add")]
+        [Authorize(Roles = "admin")]
+        public async Task<BrandDto> Post(BrandDto brand)
         {
-            return new ActionResult<BrandDto>(brandsService.Post(brand));
+            return await brandsService.Post(brand);
         }
 
-        [HttpPut]
-        public ActionResult<BrandDto> Put(int id, [FromBody] BrandDto brand)
+        [HttpPut("update/{id}")]
+        [Authorize(Roles = "admin")]
+        public async Task<BrandDto> Put(int id, [FromBody] BrandDto brand)
         {
-            return new ActionResult<BrandDto>(brandsService.Put(id, brand));
+            return await brandsService.Put(id, brand);
         }
 
-        [HttpDelete("{id}")]
-        public ActionResult<BrandDto> Delete(int id)
+        [HttpDelete("delete/{id}")]
+        [Authorize(Roles = "admin")]
+        public async Task<BrandDto> Delete(int id)
         {
-            return new ActionResult<BrandDto>(brandsService.Delete(id));
+            return await brandsService.Delete(id);
         }
     }
 }
