@@ -38,6 +38,16 @@ namespace WebApi
                     };
                 });
             services.AddAuthorization();
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy(name: "MyDevelopmentCorsPolitics",
+                    policy =>
+                    {
+                        policy.WithOrigins("http://localhost:3000").AllowAnyMethod().AllowAnyHeader();
+                    });
+            });
+
             services.AddTransient<BrandsService>();
             services.AddTransient<ProductsService>();
             services.AddTransient<UsersService>();
@@ -62,6 +72,7 @@ namespace WebApi
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseCors("MyDevelopmentCorsPolitics");
             app.UseSwagger();
             app.UseSwaggerUI(options =>
             {

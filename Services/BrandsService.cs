@@ -1,15 +1,15 @@
 ﻿using Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using WebApi.DTO;
+using WebApi.Exceptions;
 
 namespace WebApi.Services
 {
     public class BrandsService
     {
-        private DataContext dataBase;
+        private readonly DataContext dataBase;
 
         public BrandsService(DataContext dataBase)
         {
@@ -18,8 +18,8 @@ namespace WebApi.Services
 
         public async Task<List<BrandDto>> GetAll()
         {
-            List<BrandDto> brands = new();
-            foreach (Brand brand in dataBase.Brands.Include(b => b.Products))
+            List<BrandDto> brandDtos = new();
+            foreach (Brand brand in await dataBase.Brands.Include(b => b.Products).ToListAsync())
             {
                 List<ProductDto> products = new();
                 foreach (Product product in brand.Products)
@@ -33,7 +33,8 @@ namespace WebApi.Services
                         ProductSerial = product.ProductSerial
                     });
                 }
-                brands.Add(new BrandDto()
+
+                brandDtos.Add(new BrandDto()
                 {
                     Id = brand.Id,
                     Name = brand.Name,
@@ -41,12 +42,15 @@ namespace WebApi.Services
                     Products = products
                 });
             }
-            return await Task.FromResult(brands);
+            return brandDtos;
         }
 
-        public async Task<BrandDto> Get(int id)
+        public async Task<BrandDto> GetById(int id)
         {
-            Brand brand = dataBase.Brands.Include(b => b.Products).FirstOrDefault(b => b.Id == id);
+            Brand brand = await dataBase.Brands.Include(b => b.Products).FirstOrDefaultAsync(b => b.Id == id);
+            if (brand is null)
+                throw new NotFoundException("Brand not found!", id.ToString());
+
             List<ProductDto> products = new();
             foreach (Product product in brand.Products)
             {
@@ -59,16 +63,17 @@ namespace WebApi.Services
                     ProductSerial = product.ProductSerial
                 });
             }
-            return await Task.FromResult(new BrandDto()
+
+            return new BrandDto()
             {
                 Id = brand.Id,
                 Name = brand.Name,
                 Specialization = brand.Specialization,
                 Products = products
-            });
+            };
         }
 
-        public async Task<BrandDto> Post(BrandDto brandDto)
+        public async Task<BrandDto> Add(BrandDto brandDto)
         {
             Brand brand = new()
             {
@@ -76,32 +81,38 @@ namespace WebApi.Services
                 Specialization = brandDto.Specialization
             };
             dataBase.Brands.Add(brand);
-            dataBase.SaveChanges();
+            await dataBase.SaveChangesAsync();
 
-            brandDto.Id = dataBase.Brands.First(b => b.Name == brand.Name).Id;
-            return await Task.FromResult(brandDto);
+            brandDto.Id = (await dataBase.Brands.FirstAsync(b => b.Name == brand.Name)).Id;
+            return brandDto;
         }
 
-        public async Task<BrandDto> Put(int id, BrandDto dto)
+        public async Task<BrandDto> Update(int id, BrandDto brandDto)
         {
-            Brand result = dataBase.Brands.FirstOrDefault(b => b.Id == id);
-            result.Specialization = dto.Specialization;
-            result.Name = dto.Name;
-            dataBase.SaveChanges();
-            return await Task.FromResult(dto);
+            Brand brand = await dataBase.Brands.FirstOrDefaultAsync(b => b.Id == id);
+            if (brand is null)
+                throw new NotFoundException("Brand not found!", id.ToString());
+
+            brand.Specialization = brandDto.Specialization;
+            brand.Name = brandDto.Name;
+            await dataBase.SaveChangesAsync();
+            return brandDto;
         }
 
         public async Task<BrandDto> Delete(int id)
         {
-            Brand result = dataBase.Brands.FirstOrDefault(p => p.Id == id);
+            Brand result = await dataBase.Brands.FirstOrDefaultAsync(p => p.Id == id);
+            if (result is null)
+                throw new NotFoundException("Brand not found!", id.ToString());
+
             dataBase.Brands.Remove(result);
-            dataBase.SaveChanges();
-            return await Task.FromResult(new BrandDto
+            await dataBase.SaveChangesAsync();
+            return new BrandDto
             {
                 Id = result.Id,
                 Name = result.Name,
                 Specialization = result.Specialization
-            });
+            };
         }
     }
 }

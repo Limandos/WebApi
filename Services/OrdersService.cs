@@ -10,16 +10,16 @@ namespace WebApi.Services
 {
     public class OrdersService
     {
-        private DataContext dataBase;
+        private readonly DataContext dataBase;
 
         public OrdersService(DataContext dataBase)
         {
             this.dataBase = dataBase;
         }
 
-        public async Task<OrderDto> MakeOrder(string userEmail, long[] productSerials)
+        public async Task<OrderDto> MakeOrder(string userEmail, long[] productIds)
         {
-                User user = dataBase.Users.FirstOrDefault(u => u.Email == userEmail);
+            User user = await dataBase.Users.FirstOrDefaultAsync(u => u.Email == userEmail);
             if (user is null)
                 return null;
 
@@ -29,47 +29,48 @@ namespace WebApi.Services
                 User = user,
                 ProductsList = new()
             };
-            foreach (long productSerial in productSerials)
+            foreach (long productId in productIds)
             {
-                order.ProductsList.Add(dataBase.Products.FirstOrDefault(p => p.ProductSerial == productSerial));
+                order.ProductsList.Add(dataBase.Products.FirstOrDefault(p => p.Id == productId));
             }
 
             dataBase.Orders.Add(order);
-            dataBase.SaveChanges();
+            await dataBase.SaveChangesAsync();
 
-            return await Task.FromResult(new OrderDto()
+            return new OrderDto()
             {
                 CreationDate = order.CreationDate,
                 User = new UserInfoDto()
                 {
                     Id = user.Id,
-                    Email = user.Email,
-                    Role = user.Role,
+                    UserEmail = user.Email,
+                    UserRole = user.Role,
                     UserName = user.UserName
                 }
-            });
+            };
         }
 
         public async Task<OrderDto> DeleteOrder(int id)
         {
-            Order order = dataBase.Orders.FirstOrDefault(o => o.Id == id);
+            Order order = await dataBase.Orders.FirstOrDefaultAsync(o => o.Id == id);
             dataBase.Orders.Remove(order);
-            dataBase.SaveChanges();
-            return await Task.FromResult(new OrderDto
+            await dataBase.SaveChangesAsync();
+            return new OrderDto
             {
-                Id = order.Id, CreationDate = order.CreationDate   
-            });
+                Id = order.Id,
+                CreationDate = order.CreationDate
+            };
         }
 
         public async Task<List<OrderDto>> GetAll()
         {
             List<OrderDto> orders = new();
-            List<Order> query = dataBase.Orders.Include(o => o.User).ToList();
+            List<Order> query = await dataBase.Orders.Include(o => o.User).ToListAsync();
             foreach (Order order in query)
             {
-                User user = dataBase.Users.FirstOrDefault(u => u.Email == order.User.Email);
+                User user = await dataBase.Users.FirstOrDefaultAsync(u => u.Email == order.User.Email);
                 List<ProductDto> orderProducts = new();
-                foreach (Product product in dataBase.Products.Include(p => p.Brand).ToList())
+                foreach (Product product in await dataBase.Products.Include(p => p.Brand).ToListAsync())
                 {
                     orderProducts.Add(new()
                     {
@@ -87,14 +88,14 @@ namespace WebApi.Services
                     User = new UserInfoDto()
                     {
                         Id = user.Id,
-                        Email = user.Email,
+                        UserEmail = user.Email,
                         UserName = user.UserName,
-                        Role = user.Role
+                        UserRole = user.Role
                     },
                     ProductsList = orderProducts
                 });
             }
-            return await Task.FromResult(orders);
+            return orders;
         }
     }
 }

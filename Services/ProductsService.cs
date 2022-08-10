@@ -9,7 +9,7 @@ namespace WebApi.Services
 {
     public class ProductsService
     {
-        private DataContext dataBase;
+        private readonly DataContext dataBase;
 
         public ProductsService(DataContext dataBase)
         {
@@ -19,7 +19,7 @@ namespace WebApi.Services
         public async Task<List<ProductDto>> GetAll()
         {
             List<ProductDto> result = new();
-            foreach (Product product in dataBase.Products.Include(p => p.Brand))
+            foreach (Product product in await dataBase.Products.Include(p => p.Brand).ToListAsync())
             {
                 result.Add(new ProductDto()
                 {
@@ -30,66 +30,66 @@ namespace WebApi.Services
                     BrandName = product.Brand.Name
                 });
             }
-            return await Task.FromResult(result);
+            return result;
         }
 
-        public async Task<ProductDto> Get(int id)
+        public async Task<ProductDto> GetById(int id)
         {
-            Product product = dataBase.Products.Include(p => p.Brand).FirstOrDefault(p => p.Id == id);
+            Product product = await dataBase.Products.Include(p => p.Brand).FirstOrDefaultAsync(p => p.Id == id);
             if (product is null)
                 return null;
 
-            return await Task.FromResult(new ProductDto()
+            return new ProductDto()
             {
                 Id = product.Id,
                 Name = product.Name,
                 BrandName = product.Brand.Name,
                 Price = product.Price,
                 ProductSerial = product.ProductSerial
-            });
+            };
         }
 
-        public async Task<ProductDto> Post(ProductDto productDto)
+        public async Task<ProductDto> Add(ProductDto productDto)
         {
             Product product = new()
             {
                 ProductSerial = productDto.ProductSerial,
                 Name = productDto.Name,
                 Price = productDto.Price,
-                Brand = dataBase.Brands.FirstOrDefault(b => b.Name == productDto.BrandName)
+                Brand = await dataBase.Brands.FirstOrDefaultAsync(b => b.Name == productDto.BrandName)
             };
             dataBase.Products.Add(product);
-            dataBase.SaveChanges();
+            await dataBase.SaveChangesAsync();
 
-            productDto.Id = dataBase.Products.First(p => p.ProductSerial == product.ProductSerial).Id;
-            return await Task.FromResult(productDto);
+            productDto.Id = (await dataBase.Products.FirstAsync(p => p.ProductSerial == product.ProductSerial)).Id;
+            return productDto;
         }
 
-        public async Task<ProductDto> Put(int id, ProductDto product)
+        public async Task<ProductDto> Update(int id, ProductDto productDto)
         {
-            Product result = dataBase.Products.FirstOrDefault(p => p.Id == id);
-            Brand brand = dataBase.Brands.FirstOrDefault(b => product.BrandName == b.Name);
-            result.Name = product.Name;
-            result.Price = product.Price;
-            result.ProductSerial = product.ProductSerial;
-            result.Brand = brand;
+            Product product = await dataBase.Products.FirstOrDefaultAsync(p => p.Id == id);
+            Brand brand = await dataBase.Brands.FirstOrDefaultAsync(b => productDto.BrandName == b.Name);
+            product.Name = productDto.Name;
+            product.Price = productDto.Price;
+            product.ProductSerial = productDto.ProductSerial;
+            product.Brand = brand;
             dataBase.SaveChanges();
-            return await Task.FromResult(product);
+            return productDto;
         }
 
         public async Task<ProductDto> Delete(int id)
         {
-            Product result = dataBase.Products.Include(p => p.Brand).FirstOrDefault(p => p.Id == id);
+            Product result = await dataBase.Products.Include(p => p.Brand).FirstOrDefaultAsync(p => p.Id == id);
             dataBase.Products.Remove(result);
-            dataBase.SaveChanges();
-            return await Task.FromResult(new ProductDto
+            await dataBase.SaveChangesAsync();
+            return new ProductDto
             {
                 Id = result.Id,
                 BrandName = result.Brand.Name,
                 Name = result.Name,
                 Price = result.Price,
                 ProductSerial = result.ProductSerial
-            });
+            };
         }
     }
 }

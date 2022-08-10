@@ -27,21 +27,21 @@ namespace WebApi.Controllers
         [HttpGet("{id}")]
         public async Task<ProductDto> Get(int id)
         {
-            return await productsService.Get(id);
+            return await productsService.GetById(id);
         }
 
         [HttpPost("add")]
         [Authorize(Roles = "admin")]
         public async Task<ProductDto> Post(ProductDto product)
         {
-            return await productsService.Post(product);
+            return await productsService.Add(product);
         }
 
         [HttpPut("update/{id}")]
         [Authorize(Roles = "admin")]
         public async Task<ProductDto> Put(int id, [FromBody] ProductDto product)
         {
-            return await productsService.Put(id, product);
+            return await productsService.Update(id, product);
         }
 
         [HttpDelete("delete/{id}")]

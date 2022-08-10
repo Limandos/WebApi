@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using WebApi.DTO;
+using WebApi.Exceptions;
 using WebApi.Services;
 
 namespace WebApi.Controllers
@@ -27,21 +28,21 @@ namespace WebApi.Controllers
         [HttpGet("{id}")]
         public async Task<BrandDto> Get(int id)
         {
-            return await brandsService.Get(id);
+            return await brandsService.GetById(id);
         }
 
         [HttpPost("add")]
         [Authorize(Roles = "admin")]
         public async Task<BrandDto> Post(BrandDto brand)
         {
-            return await brandsService.Post(brand);
+            return await brandsService.Add(brand);
         }
 
         [HttpPut("update/{id}")]
         [Authorize(Roles = "admin")]
         public async Task<BrandDto> Put(int id, [FromBody] BrandDto brand)
         {
-            return await brandsService.Put(id, brand);
+            return await brandsService.Update(id, brand);
         }
 
         [HttpDelete("delete/{id}")]

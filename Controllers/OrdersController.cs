@@ -29,7 +29,7 @@ namespace WebApi.Controllers
         [HttpPost("add")]
         public async Task<OrderDto> AddOrder([FromBody] List listProductsDto)
         {
-            return await ordersService.MakeOrder(User.FindFirstValue(ClaimTypes.Email), listProductsDto.Serials);
+            return await ordersService.MakeOrder(User.FindFirstValue(ClaimTypes.Email), listProductsDto.Ids);
         }
 
         [HttpDelete("delete/{id}")]

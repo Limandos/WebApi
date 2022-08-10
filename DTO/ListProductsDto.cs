@@ -2,6 +2,6 @@
 {
     public class List
     {
-        public long[] Serials { get; set; }
+        public long[] Ids { get; set; }
     }
 }

@@ -10,7 +10,7 @@ namespace WebApi.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private UsersService usersService;
+        private readonly UsersService usersService;
 
         public UsersController(UsersService usersService)
         {
@@ -33,11 +33,11 @@ namespace WebApi.Controllers
         public async Task<JsonResult> Register(UserRegisterDto user)
         {
             string token = await usersService.Register(user);
-            return await Task.FromResult(new JsonResult(new
+            return new JsonResult(new
             {
-                email = user.Email,
+                email = user.UserEmail,
                 accessToken = token
-            }));
+            });
         }
 
         [HttpPost("login")]
@@ -45,13 +45,13 @@ namespace WebApi.Controllers
         {
             string token = await usersService.Login(user);
             if (token is null)
-                return await Task.FromResult(Unauthorized());
+                return Unauthorized();
 
-            return await Task.FromResult(new JsonResult(new
+            return new JsonResult(new
             {
-                email = user.Email,
+                email = user.UserEmail,
                 accessToken = token
-            }));
+            });
         }
     }
 }
